@@ -51,7 +51,7 @@
             app:boxCornerRadiusBottomEnd="16dp"
             app:boxStrokeWidth="0dp"
             app:boxStrokeWidthFocused="0dp"
-            android:hint="Task name">
+            >
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etTaskName"
                 android:layout_width="match_parent"

@@ -2,72 +2,104 @@ package com.piyumal.todo_app_doodle;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
-import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
 
-/**
- * LoginActivity for Doodle App
- * Handles user authentication UI and navigation to Main/Signup screens.
- */
 public class LoginActivity extends AppCompatActivity {
 
     private TextInputEditText emailEditText, passwordEditText;
+    private MaterialButton loginButton, createAccountButton;
+    private TextView forgotPassword;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // 1. Enable Edge-to-Edge for modern UI support
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
 
-        // 2. Handle System Bar Insets to prevent Notch/Camera overlap
-        if (findViewById(R.id.main) != null) {
-            ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-                return insets;
-            });
-        }
+        // Initialize Firebase Authentication
+        mAuth = FirebaseAuth.getInstance();
 
-        // 3. Initialize UI Components using IDs from activity_login.xml
+        // Bind XML IDs to Java Variables
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
-        MaterialButton loginButton = findViewById(R.id.loginButton);
-        MaterialButton createAccountButton = findViewById(R.id.createAccountButton);
+        loginButton = findViewById(R.id.loginButton);
+        createAccountButton = findViewById(R.id.createAccountButton);
+        forgotPassword = findViewById(R.id.forgotPassword);
 
-        // 4. Login Button Logic -> Navigate to MainActivity (Home Screen)
-        if (loginButton != null) {
-            loginButton.setOnClickListener(v -> {
-                // Navigate from LoginActivity to MainActivity
-                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        // Login Process
+        loginButton.setOnClickListener(v -> loginUser());
 
-                /* Best Practice: Clear activity stack.
-                   Prevents user from returning to Login screen when pressing back from Home.
-                */
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        // Redirect to Signup Activity
+        createAccountButton.setOnClickListener(v -> {
+            startActivity(new Intent(LoginActivity.this, SignupActivity.class));
+        });
 
-                startActivity(intent);
-                Toast.makeText(this, "Welcome back!", Toast.LENGTH_SHORT).show();
+        // Forgot Password Logic
+        forgotPassword.setOnClickListener(v -> showForgotPasswordDialog());
+    }
 
-                // Close the login activity instance
-                finish();
-            });
+    private void loginUser() {
+        String email = emailEditText.getText().toString().trim();
+        String password = passwordEditText.getText().toString().trim();
+
+        if (email.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Please enter email and password", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        // 5. Signup Button Logic -> Navigate to SignupActivity
-        if (createAccountButton != null) {
-            createAccountButton.setOnClickListener(v -> {
-                Intent intent = new Intent(LoginActivity.this, SignupActivity.class);
-                startActivity(intent);
-            });
-        }
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(LoginActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                        finish();
+                    } else {
+                        Toast.makeText(LoginActivity.this, "Login Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void showForgotPasswordDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Reset Password");
+        builder.setMessage("Enter your registered email to receive a reset link.");
+
+        // Create an EditText inside the dialog
+        final EditText input = new EditText(this);
+        input.setHint("example@gmail.com");
+        builder.setView(input);
+
+        // Set Dialog Buttons
+        builder.setPositiveButton("Send Link", (dialog, which) -> {
+            String email = input.getText().toString().trim();
+            if (!email.isEmpty()) {
+                sendResetEmail(email);
+            } else {
+                Toast.makeText(this, "Email is required!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
+    }
+
+    private void sendResetEmail(String email) {
+        mAuth.sendPasswordResetEmail(email)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(LoginActivity.this, "Reset email sent! Please check your inbox.", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(LoginActivity.this, "Error: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 }

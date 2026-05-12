@@ -1,19 +1,22 @@
 plugins {
     alias(libs.plugins.android.application)
+    // Apply Google Services plugin for Firebase
+    id("com.google.gms.google-services")
 }
 
 android {
     namespace = "com.piyumal.todo_app_doodle"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+
+    // Updated to 36 to satisfy library requirements
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.piyumal.todo_app_doodle"
         minSdk = 25
+
+        // Match targetSdk with compileSdk
         targetSdk = 36
+
         versionCode = 1
         versionName = "1.0"
 
@@ -29,6 +32,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -40,6 +44,14 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+
+    // Firebase Bill of Materials (BoM) - Use stable version 33.1.0
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+
+    // Firebase Authentication & Firestore
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
