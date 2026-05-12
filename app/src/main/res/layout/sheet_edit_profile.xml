@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/sheet_background"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ImageButton
+            android:id="@+id/btnCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_back"
+            android:background="?attr/selectableItemBackgroundBorderless"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Edit Profile"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+    </RelativeLayout>
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="24dp"
+        android:src="@drawable/user"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:hint="User name"
+        app:startIconDrawable="@drawable/ic_user"
+        app:endIconDrawable="@drawable/ic_edit">
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Amal Perera"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="Email address"
+        app:startIconDrawable="@drawable/ic_email"
+        app:endIconDrawable="@drawable/ic_edit">
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="example@gmail.com"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="32dp"
+        android:backgroundTint="@color/primary"
+        android:text="Save"
+        app:cornerRadius="28dp" />
+
+</LinearLayout>
