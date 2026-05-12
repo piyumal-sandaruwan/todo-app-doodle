@@ -10,16 +10,19 @@ public class SplashActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Set the app theme before onCreate to bypass system splash icon
+        setTheme(R.style.Theme_Doodle);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        // Delay for 2 seconds then start LoginActivity
+        // Transition to LoginActivity after a 2-second delay
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
                 startActivity(intent);
-                finish();
+                finish(); // Remove SplashActivity from the back stack
             }
         }, 2000);
     }
