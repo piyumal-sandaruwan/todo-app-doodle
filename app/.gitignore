@@ -1,1 +1,11 @@
+# Firebase configuration file
+google-services.json
+
+# Local configuration file
+local.properties
+
+# Log files
+*.log
+
+# Built artifacts
 /build
