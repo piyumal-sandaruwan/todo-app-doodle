@@ -33,15 +33,21 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * MainActivity: The heart of the "Doodle" app.
+ * Logic: Manages the task list and connects to the Cloud Firestore database.
+ */
 public class MainActivity extends AppCompatActivity {
 
     private TextView dateText;
     private String selectedTaskDate = "";
 
+    // RecyclerView variables for displaying the list
     private RecyclerView tasksRecyclerView;
     private TaskAdapter taskAdapter;
     private List<Task> taskList;
 
+    // Firebase instances
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
@@ -51,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        // Initialize Firebase
+        // INITIALIZATION: Setting up Firebase services
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
@@ -61,26 +67,32 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
+        // UI SETUP: Initializing the Top Toolbar and Date
         Toolbar toolbar = findViewById(R.id.topAppBar);
         setSupportActionBar(toolbar);
 
         dateText = findViewById(R.id.dateText);
         updateCurrentDate();
 
-        // RecyclerView Initialization
+        // RECYCLERVIEW SETUP: Connecting the Adapter to the List
         tasksRecyclerView = findViewById(R.id.tasksRecyclerView);
         taskList = new ArrayList<>();
         taskAdapter = new TaskAdapter(taskList);
         tasksRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         tasksRecyclerView.setAdapter(taskAdapter);
 
-        // Load existing tasks from Firestore
+        // SYNC: Load user's tasks from the cloud database
         loadTasksFromFirestore();
 
+        // ACTION: Floating button to trigger the "Add Task" popup
         FloatingActionButton fabAddTask = findViewById(R.id.fabAddTask);
         fabAddTask.setOnClickListener(v -> showAddTaskDialog());
     }
 
+    /**
+     * UI LOGIC: Shows a custom Dialog (popup) to enter a new task.
+     * Uses a DatePickerDialog for easy date selection.
+     */
     private void showAddTaskDialog() {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_task, null);
         AlertDialog dialog = new AlertDialog.Builder(this, R.style.CustomDialogTheme).setView(dialogView).create();
@@ -92,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
         TextInputEditText etTaskName = dialogView.findViewById(R.id.etTaskName);
         TextView tvSelectedDate = dialogView.findViewById(R.id.tvSelectedDate);
 
-        // Date Picker logic
+        // DATE SELECTION: Opens the native Android calendar popup
         dialogView.findViewById(R.id.datePickerLayout).setOnClickListener(v -> {
             Calendar c = Calendar.getInstance();
             new DatePickerDialog(this, (view, year, month, day) -> {
@@ -104,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
             }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
         });
 
-        // Save Task Logic
+        // SAVE BUTTON: Validates input and calls the database method
         dialogView.findViewById(R.id.btnSaveTask).setOnClickListener(v -> {
             String taskName = etTaskName.getText().toString().trim();
             if (taskName.isEmpty() || selectedTaskDate.isEmpty()) {
@@ -121,6 +133,10 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    /**
+     * DATABASE LOGIC: Saves the task to Firestore.
+     * Structure: Users -> [UID] -> MyTasks -> [TaskID]
+     */
     private void saveNewTask(String title) {
         String userId = mAuth.getCurrentUser().getUid();
         String taskId = db.collection("Users").document(userId).collection("MyTasks").document().getId();
@@ -132,7 +148,8 @@ public class MainActivity extends AppCompatActivity {
                 .set(newTask)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(MainActivity.this, "Task Added!", Toast.LENGTH_SHORT).show();
-                    taskList.add(0, newTask); // Add to the top of the list
+                    // UI UPDATE: Add task locally to the list for a fast experience
+                    taskList.add(0, newTask);
                     taskAdapter.notifyItemInserted(0);
                     tasksRecyclerView.scrollToPosition(0);
                     selectedTaskDate = "";
@@ -140,12 +157,16 @@ public class MainActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * DATABASE FETCH: Retrieves tasks from Firestore.
+     * Feature: Sorted by creation time so newest tasks appear at the top.
+     */
     private void loadTasksFromFirestore() {
         if (mAuth.getCurrentUser() == null) return;
 
         String userId = mAuth.getCurrentUser().getUid();
         db.collection("Users").document(userId).collection("MyTasks")
-                .orderBy("createdAt", Query.Direction.DESCENDING) // Show newest tasks first
+                .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -161,6 +182,7 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    // Displays current date in "Monday, May 15" format
     private void updateCurrentDate() {
         if (dateText != null) {
             String date = new SimpleDateFormat("EEEE, MMMM d", Locale.getDefault()).format(Calendar.getInstance().getTime());
@@ -168,12 +190,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // MENU: Inflates the top right menu
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.home_menu, menu);
         return true;
     }
 
+    // NAVIGATION: Handles clicks on Menu items (Profile / Dev Info)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();

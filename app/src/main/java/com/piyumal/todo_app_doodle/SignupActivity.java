@@ -15,22 +15,23 @@ import java.util.Map;
 
 public class SignupActivity extends AppCompatActivity {
 
+    // Step 1: Define variables for UI and Firebase
     private TextInputEditText nameEditText, emailEditText, passwordEditText, confirmPasswordEditText;
     private MaterialButton signupButton, loginRedirectButton;
 
     private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
+    private FirebaseFirestore db; // Variable for the Firestore Database
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        // Initialize Firebase
+        // Step 2: Initialize both Auth and Database
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Bind Java variables to your XML IDs
+        // Step 3: Link variables to XML IDs
         nameEditText = findViewById(R.id.nameEditText);
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
@@ -38,22 +39,19 @@ public class SignupActivity extends AppCompatActivity {
         signupButton = findViewById(R.id.signupButton);
         loginRedirectButton = findViewById(R.id.loginRedirectButton);
 
-        // Handle Signup Button Click
+        // Set listeners for buttons
         signupButton.setOnClickListener(v -> registerUser());
-
-        // Redirect to Login Page
-        loginRedirectButton.setOnClickListener(v -> {
-            finish(); // Returns to previous activity (usually Login)
-        });
+        loginRedirectButton.setOnClickListener(v -> finish());
     }
 
+    // This method handles the registration process
     private void registerUser() {
         String name = nameEditText.getText().toString().trim();
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
         String confirmPassword = confirmPasswordEditText.getText().toString().trim();
 
-        // Validation logic
+        // Validation: Checking if fields are empty or if passwords match
         if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
@@ -64,24 +62,19 @@ public class SignupActivity extends AppCompatActivity {
             return;
         }
 
-        if (password.length() < 6) {
-            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // 1. Create User in Firebase Authentication
+        // Creating account in Firebase Auth
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
+                        // If Auth is successful, get the User ID
                         String userId = mAuth.getCurrentUser().getUid();
-                        // 2. Save User details to Firestore
+                        // Call method to save name to database
                         saveUserInfo(userId, name, email);
-                    } else {
-                        Toast.makeText(this, "Registration Error: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
 
+    // Saving user name and email to Firestore Database
     private void saveUserInfo(String userId, String name, String email) {
         Map<String, Object> userMap = new HashMap<>();
         userMap.put("name", name);
@@ -91,12 +84,9 @@ public class SignupActivity extends AppCompatActivity {
         db.collection("Users").document(userId)
                 .set(userMap)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(SignupActivity.this, "Account Created Successfully!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SignupActivity.this, "Account Created!", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(SignupActivity.this, LoginActivity.class));
                     finish();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(SignupActivity.this, "Firestore Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 }
